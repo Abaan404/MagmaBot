@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+    mongo:
+        image: mongo:latest
+        # ports:
+        #     - 27017:27017 # Expose this port to access mongodb externally
+        volumes:
+            - ./mongodb:/data/db
+        restart: on-failure
+
+    bot:
+        build: ./src
+        environment:
+            - BOT_TOKEN=${BOT_TOKEN}
+        volumes:
+            - ./src:/usr/src/app
+        restart: on-failure
+        depends_on:
+            - mongo
