@@ -1,0 +1,35 @@
+name: upload-bot
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Deploying code on a remote server using rsync
+        uses: burnett01/rsync-deployments@5.1
+        with:
+          switches: -avzr --delete --exclude=*__pycache__
+          path: ./src/
+          remote_path: ./bot/src/
+          remote_host: ${{ secrets.HOST }}
+          remote_port: ${{ secrets.PORT }}
+          remote_user: ${{ secrets.USERNAME }}
+          remote_key: ${{ secrets.PRIVATE_KEY }}
+      
+      - name: Starting up the bot
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          port: ${{ secrets.PORT }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: cd ./bot && docker-compose restart
